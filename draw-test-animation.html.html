@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C的冒險旅程</title>
+    <link rel="icon" href="favicon.ico?v=2" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('images/background.jpg'); /* 背景圖片 */
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        #header-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: rgba(0, 0, 0, 0.7); /* 為標題容器加上半透明黑色背景 */
+            padding: 10px 20px; /* 增加標題容器的內邊距 */
+            border-radius: 10px; /* 可選：為標題容器添加圓角 */
+        }
+        #header-container h1 {
+            font-size: 3.0em; /* 加大標題文字 */
+            margin: 0; /* 移除標題預設的外邊距 */
+            font-family: "Comic Sans MS", cursive, sans-serif; /* 選擇一個比較特別的網頁安全字體 */
+        }
+        #header-container button {
+            background: linear-gradient(45deg, #ff007f, #ff6eff, #ff9f00);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 0 rgba(255, 0, 255, 0); /* 初始不顯示陰影 */
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+            position: relative;
+            z-index: 1;
+            margin-left: 10px; /* 確保按鈕之間有間距 */
+        }
+        #header-container button:hover {
+            background: linear-gradient(45deg, #ff9f00, #ff007f, #ff6eff);
+            box-shadow: 0 3px 6px rgba(255, 0, 255, 0.2); /* 游標移到上面時顯示陰影 */
+            transform: scale(1.05);
+        }
+        #header-container button:active {
+            transform: scale(0.98);
+        }
+        #header-container button:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30%; /* 縮小 80% */
+            height: 30%; /* 縮小 80% */
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            animation: clickEffect 0.6s ease-out;
+        }
+        @keyframes clickEffect {
+            to {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+        }
+        #main-container {
+            display: flex;
+            justify-content: center; /* 讓卡牌容器在主容器中水平居中 */
+            align-items: center; /* 垂直居中 */
+            min-height: 60vh; /* 確保主容器至少佔據一定的高度 */
+            position: relative; /* 建立定位上下文 */
+        }
+        #card-container {
+            /* 卡牌容器維持居中 */
+        }
+        #card {
+            width: 300px;
+            height: 450px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            position: relative;
+            transform-style: preserve-3d; /* 啟用 3D 變換 */
+            transition: transform 0.8s ease-in-out; /* 卡片翻轉的過渡效果 */
+        }
+        #card.flipped {
+            transform: rotateY(180deg); /* 翻轉 180 度 */
+        }
+        #card-back, #card-front {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            backface-visibility: hidden; /* 隱藏背面 */
+            display: flex;
+            justify-content: center; /* 圖片水平置中 */
+            align-items: center; /* 圖片垂直置中 */
+        }
+        #card-back {
+            background-image: url('images/card_back.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: 2; /* 確保卡背在正面之上 */
+        }
+        #card-front {
+            background-color: #f0f0f0; /* 卡片正面底色，可根據需要調整 */
+            transform: rotateY(180deg); /* 初始時背面朝前 */
+        }
+        #card-front img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain; /* 確保圖片完整顯示 */
+        }
+        #info-container-right {
+            width: 300px; /* 設定右側資訊欄的固定寬度 */
+            position: absolute; /* 相對於 #main-container 定位 */
+            top: 50%; /* 垂直置中 */
+            right: 20px; /* 距離右邊界一定距離 */
+            transform: translateY(-50%); /* 精確垂直置中 */
+            text-align: left;
+            color: white;
+            display: none; /* 初始隱藏 */
+        }
+        #card-name-right {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background-color: rgba(0, 0, 0, 0.55);
+            padding: 5px;
+            border-radius: 5px;
+        }
+        #card-description-right {
+            font-size: 16px; /* 加大描述文字 */
+            line-height: 1.5;
+            background-color: rgba(0, 0, 0, 0.55);
+            padding: 5px;
+            border-radius: 5px;
+        }
+        #encyclopedia-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            overflow: auto;
+        }
+        #encyclopedia-modal > div {
+            background-color: #f0f0f0;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 900px;
+            color: #333;
+            position: relative;
+        }
+        #close-encyclopedia-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+        .encyclopedia-tab {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #eee;
+            color: #333;
+        }
+        .encyclopedia-tab.active {
+            background-color: #ddd;
+        }
+        .encyclopedia-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* 每行顯示多張卡片 */
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .encyclopedia-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .rare-effect {
+            animation: glow 1s ease-in-out infinite alternate;
+        }
+        .ultrarare-effect {
+            animation: ultraGlow 1s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.7); /* 增加起始陰影 */
+            }
+            100% {
+                box-shadow: 0 0 40px rgba(255, 215, 0, 0.9); /* 增加結束陰影 */
+            }
+        }
+        @keyframes ultraGlow {
+            0% {
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            }
+            100% {
+                box-shadow: 0 0 50px rgba(255, 0, 255, 1);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header-container">
+        <h1>C的冒險旅程</h1>
+        <button onclick="flipCard()">抽卡</button>
+        <button id="encyclopedia-btn">圖鑑</button>
+    </div>
+
+    <div id="main-container">
+        <div id="card-container">
+            <div id="card">
+                <div id="card-back"></div>
+                <div id="card-front">
+                    <img id="card-image" src="" alt="Card Front Image">
+                </div>
+            </div>
+        </div>
+        <div id="info-container-right">
+            <div id="card-name-right"></div>
+            <div id="card-description-right"></div>
+        </div>
+    </div>
+
+    <div id="encyclopedia-modal">
+        <div>
+            <button id="close-encyclopedia-btn">&times;</button>
+            <h2>我的圖鑑</h2>
+            <div style="display: flex; justify-content: space-around; margin-bottom: 20px;">
+                <button class="encyclopedia-tab active" data-tab="common-tab">Common</button>
+                <button class="encyclopedia-tab" data-tab="uncommon-tab">Uncommon</button>
+                <button class="encyclopedia-tab" data-tab="rare-tab">Rare</button>
+                <button class="encyclopedia-tab" data-tab="ultrarare-tab">Ultra Rare</button>
+            </div>
+            <div id="common-tab" class="encyclopedia-content"></div>
+            <div id="uncommon-tab" class="encyclopedia-content" style="display: none;"></div>
+            <div id="rare-tab" class="encyclopedia-content" style="display: none;"></div>
+            <div id="ultrarare-tab" class="encyclopedia-content" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const cards = [
+            { image: "images/common_1.jpg", rarity: "Common", name: "花之精靈", description: "這隻花之精靈是大自然的守護者，擁有治癒力量，會將幸福散播到四周。" },
+            { image: "images/common_2.jpg", rarity: "Common", name: "森林小鹿", description: "森林中最活潑的小鹿，擁有敏捷的身體和智慧，能感知周圍的動靜。" },
+            { image: "images/common_3.jpg", rarity: "Common", name: "清澈小魚", description: "在清澈的湖泊中游動，這隻小魚的鱗片閃爍著光芒，充滿活力。" },
+            { image: "images/uncommon_1.jpg", rarity: "Uncommon", name: "星辰紫龍", description: "這條紫色的小龍擁有能夠操控星辰的神秘力量，夜空中總能見到它的身影。" },
+            { image: "images/uncommon_2.jpg", rarity: "Uncommon", name: "雲霄飛鼠", description: "擁有翅膀的飛鼠，能夠在空中翱翔，帶來無窮的快樂與自由。" },
+            { image: "images/uncommon_3.jpg", rarity: "Uncommon", name: "魔力小獸", description: "這隻魔力小獸能夠掌控紫色的魔法能量，讓周圍充滿神秘氛圍。" },
+            { image: "images/rare_1.jpg", rarity: "Rare", name: "烈焰火龍", description: "紅色的火龍能在瞬間吞噬一切，傳說它擁有重生的力量。" },
+            { image: "images/rare_2.jpg", rarity: "Rare", name: "黃金獅王", description: "擁有無比威嚴的金色獅子，是所有生命中無可匹敵的王者。" },
+            { image: "images/rare_3.jpg", rarity: "Rare", name: "神聖獨角獸", description: "這隻獨角獸的角擁有治療和淨化一切的能力，是神話中的守護者。" },
+            { image: "images/ultrarare_1.jpg", rarity: "Ultra Rare", name: "光之神獸", description: "這隻神獸擁有控制光明的力量，穿越無盡的空間，永遠保護著宇宙的平衡。" },
+            { image: "images/ultrarare_2.jpg", rarity: "Ultra Rare", name: "鳳凰之翼", description: "擁有重生之力的金色鳳凰，無論經歷多少次火焰，它總能浴火重生。" },
+            { image: "images/ultrarare_3.jpg", rarity: "Ultra Rare", name: "星辰龍王", description: "這條星辰小龍擁有無比的智慧，控制著星空的力量，為世界帶來光明。" }
+        ];
+
+        const cardElement = document.getElementById("card");
+        const cardImageElement = document.getElementById("card-image");
+        const cardNameRightElement = document.getElementById("card-name-right");
+        const cardDescriptionRightElement = document.getElementById("card-description-right");
+        const infoContainerRightElement = document.getElementById("info-container-right");
+        const encyclopediaBtn = document.getElementById("encyclopedia-btn");
+        const encyclopediaModal = document.getElementById("encyclopedia-modal");
+        const closeEncyclopediaBtn = document.getElementById("close-encyclopedia-btn");
+        const encyclopediaTabs = document.querySelectorAll(".encyclopedia-tab");
+        const encyclopediaContents = {
+            "common-tab": document.getElementById("common-tab"),
+            "uncommon-tab": document.getElementById("uncommon-tab"),
+            "rare-tab": document.getElementById("rare-tab"),
+            "ultrarare-tab": document.getElementById("ultrarare-tab")
+        };
+
+        let collectedCards = []; // 每次開啟網頁都重置 collectedCards
+        let hasFlipped = false; // 追蹤卡片是否已翻開
+
+        // 頁面載入時清空 localStorage 中的 collectedCards
+        localStorage.removeItem("collectedCards");
+
+        encyclopediaBtn.addEventListener("click", () => {
+            encyclopediaModal.style.display = "block";
+            displayCollectedCards();
+        });
+
+        closeEncyclopediaBtn.addEventListener("click", () => {
+            encyclopediaModal.style.display = "none";
+        });
+
+        encyclopediaTabs.forEach(tab => {
+            tab.addEventListener("click", () => {
+                encyclopediaTabs.forEach(t => t.classList.remove("active"));
+                Object.values(encyclopediaContents).forEach(content => content.style.display = "none");
+
+                tab.classList.add("active");const targetTab = tab.getAttribute("data-tab");
+                encyclopediaContents[targetTab].style.display = "grid";
+            });
+        });
+
+        function flipCard() {
+            if (hasFlipped) {
+                cardElement.classList.remove("flipped");
+                infoContainerRightElement.style.display = 'none';
+                hasFlipped = false;
+                setTimeout(drawNewCard, 800); // 在卡片翻回後延遲抽新卡
+            } else {
+                drawNewCard();
+            }
+        }
+
+        function drawNewCard() {
+            const randomIndex = Math.floor(Math.random() * cards.length);
+            const card = cards[randomIndex];
+
+            cardElement.classList.remove("rare-effect", "ultrarare-effect");
+            cardElement.classList.remove("flipped");
+            infoContainerRightElement.style.display = 'none';
+
+            setTimeout(() => {
+                cardImageElement.src = card.image;
+                cardNameRightElement.textContent = card.name;
+                cardDescriptionRightElement.textContent = card.description;
+                cardElement.classList.add("flipped");
+                infoContainerRightElement.style.display = 'block';
+                hasFlipped = true;
+
+                if (card.rarity === "Ultra Rare") {
+                    cardElement.classList.add("ultrarare-effect");
+                } else if (card.rarity === "Rare") {
+                    cardElement.classList.add("rare-effect");
+                }
+
+                // 將抽到的卡片加入已收集列表 (檢查是否已存在)
+                if (!collectedCards.some(c => c.image === card.image)) {
+                    collectedCards.push(card);
+                    // localStorage.setItem("collectedCards", JSON.stringify(collectedCards)); // 暫時不儲存
+                }
+                // displayCollectedCards(); // 圖鑑只在開啟時更新
+            }, 300);
+        }
+
+        function displayCollectedCards() {
+            Object.values(encyclopediaContents).forEach(content => content.innerHTML = "");
+
+            collectedCards.forEach(card => {
+                const img = document.createElement("img");
+                img.src = card.image;
+                img.alt = card.name;
+                switch (card.rarity.toLowerCase()) {
+                    case "common":
+                        encyclopediaContents["common-tab"].appendChild(img);
+                        break;
+                    case "uncommon":
+                        encyclopediaContents["uncommon-tab"].appendChild(img);
+                        break;
+                    case "rare":
+                        encyclopediaContents["rare-tab"].appendChild(img);
+                        break;
+                    case "ultrarare":
+                        encyclopediaContents["ultrarare-tab"].appendChild(img);
+                        break;
+                }
+            });
+
+            // 確保當圖鑑首次打開時，顯示 Common 分頁的內容
+            const activeTab = document.querySelector('.encyclopedia-tab.active');
+            if (activeTab) {
+                const targetTab = activeTab.getAttribute('data-tab');
+                encyclopediaContents[targetTab].style.display = 'grid';
+            } else {
+                encyclopediaContents['common-tab'].style.display = 'grid'; // 預設顯示 Common 分頁
+                document.querySelector('.encyclopedia-tab[data-tab="common-tab"]').classList.add('active');
+            }
+        }
+
+        // 頁面載入時清空圖鑑顯示
+        displayCollectedCards();
+    </script>
+
+</body>
+</html>
